@@ -1,0 +1,21 @@
+{
+  "name": "live-kitchen-operations",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live Kitchen Operations — Reliable full-stack food-ordering system with PostgreSQL transactions & Socket.IO",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "dev": "npm run dev --workspace=server",
+    "build": "npm run build --workspace=server && npm run build --workspace=client",
+    "test:server": "npm run test --workspace=server",
+    "lint": "npm run lint --workspace=server && npm run lint --workspace=client"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
