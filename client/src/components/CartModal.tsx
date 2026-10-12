@@ -10,6 +10,7 @@ interface CartModalProps {
   onCheckout: (customerName: string) => Promise<void>;
   isSubmitting: boolean;
   errorMessage: string | null;
+  cartAlert?: string | null;
 }
 
 export const CartModal: React.FC<CartModalProps> = ({
@@ -20,7 +21,8 @@ export const CartModal: React.FC<CartModalProps> = ({
   onClearCart,
   onCheckout,
   isSubmitting,
-  errorMessage
+  errorMessage,
+  cartAlert
 }) => {
   const [customerName, setCustomerName] = useState('');
 
@@ -97,6 +99,25 @@ export const CartModal: React.FC<CartModalProps> = ({
 
         {/* Content */}
         <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
+          {cartAlert && (
+            <div style={{
+              padding: '0.875rem 1rem',
+              marginBottom: '1rem',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(234, 88, 12, 0.2)',
+              border: '1px solid rgba(245, 158, 11, 0.6)',
+              color: 'var(--brand-lime)',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              boxShadow: '0 0 15px rgba(245, 158, 11, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span>{cartAlert}</span>
+            </div>
+          )}
+
           {errorMessage && (
             <div style={{
               padding: '0.875rem 1rem',
@@ -136,7 +157,7 @@ export const CartModal: React.FC<CartModalProps> = ({
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#fff' }}>{item.name}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      ${item.price.toFixed(2)} each (Stock: {item.stock})
+                      ₹{item.price.toFixed(2)} each (Stock: {item.stock})
                     </div>
                   </div>
 
@@ -181,7 +202,7 @@ export const CartModal: React.FC<CartModalProps> = ({
                       fontFamily: 'var(--font-mono)',
                       color: 'var(--brand-lime)'
                     }}>
-                      ${(item.price * quantity).toFixed(2)}
+                      ₹{(item.price * quantity).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -215,7 +236,7 @@ export const CartModal: React.FC<CartModalProps> = ({
                     color: 'var(--brand-lime)',
                     fontFamily: 'var(--font-mono)'
                   }}>
-                    ${totalAmount.toFixed(2)}
+                    ₹{totalAmount.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -277,7 +298,7 @@ export const CartModal: React.FC<CartModalProps> = ({
                 ? 'Reserving In Minutes...'
                 : !customerName.trim()
                 ? 'Enter Name Above to Place Order'
-                : `Place Order ($${totalAmount.toFixed(2)})`}
+                : `Place Order (₹${totalAmount.toFixed(2)})`}
             </button>
           </form>
         )}

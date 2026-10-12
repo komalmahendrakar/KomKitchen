@@ -18,6 +18,7 @@ export const CustomerMenuPage: React.FC = () => {
     cartCount,
     isCartOpen,
     setIsCartOpen,
+    cartAlert,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -302,6 +303,7 @@ export const CustomerMenuPage: React.FC = () => {
         onCheckout={handleCheckout}
         isSubmitting={isSubmitting}
         errorMessage={errorMessage}
+        cartAlert={cartAlert}
       />
 
       {/* Sticky Bottom Cart Floating Bar if Cart Has Items */}

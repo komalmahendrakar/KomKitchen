@@ -11,6 +11,8 @@ interface CartContextType {
   cartCount: number;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
+  cartAlert: string | null;
+  setCartAlert: (alert: string | null) => void;
   addToCart: (item: MenuItem) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, delta: number) => void;
@@ -35,6 +37,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartAlert, setCartAlert] = useState<string | null>(null);
 
   // Sync cart to localStorage
   useEffect(() => {
@@ -46,6 +49,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cart]);
 
   const addToCart = (item: MenuItem) => {
+    setCartAlert(null);
     setCart((prev) => {
       const next = new Map(prev);
       const existing = next.get(item.id);
@@ -83,16 +87,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = () => {
     setCart(new Map());
+    setCartAlert(null);
   };
 
   const updateItemStock = (updatedStocks: Array<{ id: string; stock: number }>) => {
     setCart((prev) => {
       let changed = false;
       const next = new Map(prev);
+      const removedItems: string[] = [];
+
       for (const { id, stock } of updatedStocks) {
         const entry = next.get(id);
         if (entry) {
           if (stock <= 0) {
+            removedItems.push(entry.item.name);
             next.delete(id);
             changed = true;
           } else if (entry.quantity > stock) {
@@ -104,6 +112,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       }
+
+      if (removedItems.length > 0) {
+        setCartAlert(
+          `⚡ Just Sold Out: "${removedItems.join(', ')}" was purchased by another customer and removed from your cart!`
+        );
+      }
+
       return changed ? next : prev;
     });
   };
@@ -117,6 +132,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         cartCount,
         isCartOpen,
         setIsCartOpen,
+        cartAlert,
+        setCartAlert,
         addToCart,
         removeFromCart,
         updateQuantity,

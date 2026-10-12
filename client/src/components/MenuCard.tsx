@@ -88,7 +88,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
             color: 'var(--brand-lime)',
             fontFamily: 'var(--font-mono)'
           }}>
-            ${item.price.toFixed(2)}
+            ₹{item.price.toFixed(2)}
           </span>
         </div>
 

@@ -119,7 +119,7 @@ export const OrderTrackingPage: React.FC = () => {
               {order.status}
             </span>
             <div style={{ marginTop: '8px', fontSize: '1.5rem', fontWeight: 900, color: 'var(--brand-lime)', fontFamily: 'var(--font-mono)' }}>
-              ${order.totalAmount.toFixed(2)}
+              ₹{order.totalAmount.toFixed(2)}
             </div>
           </div>
         </div>
@@ -224,7 +224,7 @@ export const OrderTrackingPage: React.FC = () => {
                   <span style={{ fontWeight: 800, color: 'var(--brand-lime)' }}>{item.quantity}x</span> {item.name}
                 </div>
                 <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
-                  ${item.subtotal.toFixed(2)}
+                  ₹{item.subtotal.toFixed(2)}
                 </span>
               </div>
             ))}
