@@ -35,6 +35,32 @@ apiRouter.get('/snapshot', async (_req: Request, res: Response) => {
 });
 
 // ==========================================
+// Demo Reset Endpoint: Resets 1-stock scenario
+// ==========================================
+apiRouter.post('/demo/reset', async (_req: Request, res: Response) => {
+  try {
+    const { pool, getNextSequenceNumber } = await import('../db');
+    const resetRes = await pool.query(
+      `UPDATE menu_items 
+       SET stock = 1, updated_at = CURRENT_TIMESTAMP 
+       WHERE name = 'Artisan Wagyu Cheeseburger' 
+       RETURNING id, stock;`
+    );
+    if (resetRes.rows.length > 0) {
+      const seq = await getNextSequenceNumber();
+      broadcastStockUpdated({
+        sequenceNumber: seq,
+        items: [{ id: resetRes.rows[0].id, stock: 1 }],
+        serverTimestamp: new Date().toISOString()
+      });
+    }
+    res.json({ success: true, message: 'Stock reset to 1 successfully' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
 // Menu Endpoints
 // ==========================================
 apiRouter.get('/menu', async (_req: Request, res: Response) => {
