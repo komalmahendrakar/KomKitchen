@@ -75,7 +75,7 @@ export async function seedMenu() {
       await client.query(
         `INSERT INTO menu_items (name, description, price, stock, category, image_url)
          VALUES ($1, $2, $3, $4, $5, $6)
-         ON CONFLICT (id) DO NOTHING;`,
+         ON CONFLICT (name) DO NOTHING;`,
         [item.name, item.description, item.price, item.stock, item.category, item.image_url]
       );
     }

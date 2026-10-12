@@ -26,7 +26,7 @@ ON CONFLICT (id) DO NOTHING;
 -- Enforces nonnegative stock and valid positive price
 CREATE TABLE IF NOT EXISTS menu_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT DEFAULT '',
     price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
     stock INT NOT NULL CHECK (stock >= 0),
