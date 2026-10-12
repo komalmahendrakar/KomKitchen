@@ -259,31 +259,3 @@ npm run test:load --workspace=server
 🛡️ INVARIANT VERIFIED: Stock is non-negative and overselling was prevented!
 ```
 
----
-
-## 7. Step-by-Step Video Demonstration Script
-
-Follow these steps to record the required demonstration video:
-
-1. **Window Setup**:
-   - Place two browser windows side-by-side:
-     - **Window A (Left)**: Customer 1 at `http://localhost:5173`
-     - **Window B (Right Top)**: Customer 2 at `http://localhost:5173`
-     - **Window C (Right Bottom)**: Kitchen Screen at `http://localhost:5173/kitchen`
-2. **Demonstrating Stock Contention (1 Unit Left)**:
-   - If the *Artisan Wagyu Cheeseburger* is out of stock, click the **`🔄 Reset Demo Stock (1)`** button in the top navbar. Both customer windows will instantly show **"⚡ ONLY 1 LEFT!"**.
-   - In **Customer 1**: Click `+ Add` to add the Wagyu Burger to cart, open cart, enter name `"Customer 1"`.
-   - In **Customer 2**: Click `+ Add` to add the Wagyu Burger to cart, open cart, enter name `"Customer 2"`.
-   - Click **Place Order** on Customer 1 first.
-   - Instantly click **Place Order** on Customer 2.
-3. **Observing the Result**:
-   - **Customer 1** succeeds (201) and redirects to the **Live Order Tracking** progress page.
-   - **Customer 2** receives the clear notification:
-     *`⚠️ Insufficient stock for "Artisan Wagyu Cheeseburger". Requested: 1, Available: 0`*
-   - Across all windows, the Wagyu burger badge immediately flips to **"OUT OF STOCK"** without any page refresh.
-4. **Demonstrating Kitchen State Progression**:
-   - Look at **Window C (Kitchen Board)**: Customer 1's order appears in **"Incoming Orders (NEW)"** with an active waiting timer.
-   - Click **"Start Cooking 🍳"** ➔ Moves ticket to **COOKING**. Observe Customer 1's tracking progress bar advance to Step 2 in real time!
-   - Click **"Mark Ready 🛎️"** ➔ Moves ticket to **READY**. Observe Customer 1 advance to Step 3.
-   - Click **"Complete Picked Up ✅"** ➔ Moves ticket to **COMPLETED**.
-   - Return to Customer 1's menu: notice the active order tracker cleanly completes and disappears!
