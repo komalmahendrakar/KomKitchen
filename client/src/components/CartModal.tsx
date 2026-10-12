@@ -34,7 +34,7 @@ export const CartModal: React.FC<CartModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName.trim() || items.length === 0) return;
+    if (!customerName.trim() || items.length === 0 || isSubmitting) return;
     await onCheckout(customerName.trim());
   };
 
@@ -45,8 +45,8 @@ export const CartModal: React.FC<CartModalProps> = ({
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'rgba(10, 5, 25, 0.75)',
+      backdropFilter: 'blur(12px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -54,37 +54,41 @@ export const CartModal: React.FC<CartModalProps> = ({
       padding: '1rem'
     }}>
       <div
-        className="glass-panel"
+        className="inminutes-panel"
         style={{
           width: '100%',
           maxWidth: '520px',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#0f172a',
-          border: '1px solid var(--border-accent)',
-          borderRadius: '20px',
-          overflow: 'hidden'
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-lime)',
+          borderRadius: '24px',
+          overflow: 'hidden',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)'
         }}
       >
         {/* Header */}
         <div style={{
-          padding: '1.25rem 1.5rem',
+          padding: '1.25rem 1.75rem',
           borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          backgroundColor: 'var(--bg-pill)'
         }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            🛒 Your Order Cart
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
+            <span>🛒</span> Your Order Cart
           </h2>
           <button
+            type="button"
             onClick={onClose}
             style={{
               background: 'transparent',
               color: 'var(--text-secondary)',
               fontSize: '1.5rem',
-              lineHeight: 1
+              lineHeight: 1,
+              cursor: 'pointer'
             }}
           >
             &times;
@@ -95,23 +99,24 @@ export const CartModal: React.FC<CartModalProps> = ({
         <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
           {errorMessage && (
             <div style={{
-              padding: '0.875rem',
+              padding: '0.875rem 1rem',
               marginBottom: '1rem',
-              borderRadius: '8px',
+              borderRadius: '12px',
               backgroundColor: 'rgba(244, 63, 94, 0.15)',
-              border: '1px solid rgba(244, 63, 94, 0.3)',
+              border: '1px solid rgba(244, 63, 94, 0.4)',
               color: '#fda4af',
-              fontSize: '0.85rem'
+              fontSize: '0.85rem',
+              fontWeight: 600
             }}>
               ⚠️ {errorMessage}
             </div>
           )}
 
           {items.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-              <p style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🍽️</p>
-              <p style={{ fontWeight: 600 }}>Your cart is empty</p>
-              <p style={{ fontSize: '0.85rem' }}>Select delicious items from our live kitchen menu</p>
+            <div style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-muted)' }}>
+              <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>⚡</p>
+              <p style={{ fontWeight: 700, color: '#fff', fontSize: '1.1rem' }}>Your cart is empty</p>
+              <p style={{ fontSize: '0.85rem' }}>Select items from our fresh menu to begin</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -122,57 +127,59 @@ export const CartModal: React.FC<CartModalProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '0.75rem',
-                    background: 'rgba(255,255,255,0.03)',
-                    borderRadius: '10px',
+                    padding: '0.85rem 1rem',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    borderRadius: '14px',
                     border: '1px solid var(--border-subtle)'
                   }}
                 >
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{item.name}</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#fff' }}>{item.name}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      ${item.price.toFixed(2)} each (Live stock: {item.stock})
+                      ${item.price.toFixed(2)} each (Stock: {item.stock})
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
+                      type="button"
                       onClick={() => onUpdateQuantity(item.id, -1)}
                       style={{
                         width: '28px',
                         height: '28px',
-                        borderRadius: '6px',
-                        background: 'rgba(255,255,255,0.1)',
+                        borderRadius: '999px',
+                        background: 'rgba(255, 255, 255, 0.1)',
                         color: '#fff',
                         fontWeight: 700
                       }}
                     >
                       -
                     </button>
-                    <span style={{ fontWeight: 700, minWidth: '20px', textAlign: 'center' }}>
+                    <span style={{ fontWeight: 800, minWidth: '22px', textAlign: 'center', color: '#fff' }}>
                       {quantity}
                     </span>
                     <button
+                      type="button"
                       disabled={quantity >= item.stock}
                       onClick={() => onUpdateQuantity(item.id, 1)}
                       style={{
                         width: '28px',
                         height: '28px',
-                        borderRadius: '6px',
-                        background: quantity >= item.stock ? 'rgba(255,255,255,0.05)' : 'var(--accent-amber)',
-                        color: quantity >= item.stock ? 'var(--text-muted)' : '#000',
-                        fontWeight: 700,
+                        borderRadius: '999px',
+                        background: quantity >= item.stock ? 'rgba(255, 255, 255, 0.05)' : 'var(--brand-lime)',
+                        color: quantity >= item.stock ? 'var(--text-muted)' : 'var(--text-dark)',
+                        fontWeight: 800,
                         cursor: quantity >= item.stock ? 'not-allowed' : 'pointer'
                       }}
                     >
                       +
                     </button>
                     <span style={{
-                      fontWeight: 700,
-                      minWidth: '60px',
+                      fontWeight: 800,
+                      minWidth: '65px',
                       textAlign: 'right',
                       fontFamily: 'var(--font-mono)',
-                      color: 'var(--accent-amber)'
+                      color: 'var(--brand-lime)'
                     }}>
                       ${(item.price * quantity).toFixed(2)}
                     </span>
@@ -193,19 +200,19 @@ export const CartModal: React.FC<CartModalProps> = ({
                   onClick={onClearCart}
                   style={{
                     background: 'transparent',
-                    color: 'var(--accent-rose)',
+                    color: 'var(--status-rose)',
                     fontSize: '0.85rem',
-                    fontWeight: 600
+                    fontWeight: 700
                   }}
                 >
                   Clear Cart
                 </button>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Total Amount: </span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total: </span>
                   <span style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 800,
-                    color: 'var(--accent-amber)',
+                    fontSize: '1.35rem',
+                    fontWeight: 900,
+                    color: 'var(--brand-lime)',
                     fontFamily: 'var(--font-mono)'
                   }}>
                     ${totalAmount.toFixed(2)}
@@ -221,29 +228,29 @@ export const CartModal: React.FC<CartModalProps> = ({
           <form
             onSubmit={handleSubmit}
             style={{
-              padding: '1.25rem 1.5rem',
-              background: 'rgba(0,0,0,0.3)',
+              padding: '1.25rem 1.75rem',
+              background: 'var(--bg-pill)',
               borderTop: '1px solid var(--border-subtle)'
             }}
           >
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Customer Name / Table Name *
               </label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Sarah Connor / Table 4"
+                placeholder="e.g. Alex / Table 4"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.06)',
+                  padding: '0.8rem 1rem',
+                  borderRadius: '12px',
+                  background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid var(--border-subtle)',
                   color: '#fff',
-                  fontSize: '0.9rem',
+                  fontSize: '0.92rem',
                   outline: 'none'
                 }}
               />
@@ -254,17 +261,23 @@ export const CartModal: React.FC<CartModalProps> = ({
               disabled={isSubmitting || !customerName.trim()}
               style={{
                 width: '100%',
-                padding: '0.875rem',
-                borderRadius: '10px',
-                background: isSubmitting ? 'rgba(245,158,11,0.5)' : 'linear-gradient(135deg, #f59e0b, #ea580c)',
-                color: '#fff',
-                fontWeight: 700,
+                padding: '0.9rem',
+                borderRadius: '999px',
+                background: (isSubmitting || !customerName.trim())
+                  ? 'rgba(198, 240, 12, 0.2)'
+                  : 'var(--brand-lime)',
+                color: (isSubmitting || !customerName.trim()) ? 'rgba(255, 255, 255, 0.5)' : 'var(--text-dark)',
+                fontWeight: 800,
                 fontSize: '1rem',
-                boxShadow: '0 4px 14px rgba(245, 158, 11, 0.3)',
-                cursor: isSubmitting ? 'wait' : 'pointer'
+                boxShadow: (isSubmitting || !customerName.trim()) ? 'none' : 'var(--shadow-lime)',
+                cursor: (isSubmitting || !customerName.trim()) ? 'not-allowed' : 'pointer'
               }}
             >
-              {isSubmitting ? 'Reserving Stock & Placing Order...' : `Place Order ($${totalAmount.toFixed(2)})`}
+              {isSubmitting
+                ? 'Reserving In Minutes...'
+                : !customerName.trim()
+                ? 'Enter Name Above to Place Order'
+                : `Place Order ($${totalAmount.toFixed(2)})`}
             </button>
           </form>
         )}

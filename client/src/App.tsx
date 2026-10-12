@@ -5,9 +5,11 @@ import { CustomerMenuPage } from './pages/CustomerMenuPage';
 import { KitchenBoardPage } from './pages/KitchenBoardPage';
 import { OrderTrackingPage } from './pages/OrderTrackingPage';
 import { getSocket } from './services/socket';
+import { CartProvider, useCart } from './context/CartContext';
 
-export const App: React.FC = () => {
+const MainLayout: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
+  const { cartCount, setIsCartOpen } = useCart();
 
   useEffect(() => {
     const socket = getSocket();
@@ -29,26 +31,30 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <BrowserRouter>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Navbar
-          cartCount={0}
-          isConnected={isConnected}
-          onOpenCart={() => {
-            // Handled via page-level modal
-            const event = new CustomEvent('open-cart');
-            window.dispatchEvent(event);
-          }}
-        />
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Navbar
+        cartCount={cartCount}
+        isConnected={isConnected}
+        onOpenCart={() => setIsCartOpen(true)}
+      />
 
-        <main style={{ flex: 1 }}>
-          <Routes>
-            <Route path="/" element={<CustomerMenuPage />} />
-            <Route path="/kitchen" element={<KitchenBoardPage />} />
-            <Route path="/order/:id" element={<OrderTrackingPage />} />
-          </Routes>
-        </main>
-      </div>
+      <main style={{ flex: 1 }}>
+        <Routes>
+          <Route path="/" element={<CustomerMenuPage />} />
+          <Route path="/kitchen" element={<KitchenBoardPage />} />
+          <Route path="/order/:id" element={<OrderTrackingPage />} />
+        </Routes>
+      </main>
+    </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <CartProvider>
+        <MainLayout />
+      </CartProvider>
     </BrowserRouter>
   );
 };

@@ -1,37 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-script: 'Caveat', cursive, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Premium Warm Culinary Palette */
-  --bg-primary: #0b0f19;
-  --bg-secondary: #111827;
-  --bg-card: rgba(22, 30, 49, 0.7);
-  --bg-glass: rgba(26, 36, 61, 0.45);
-  
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-accent: rgba(245, 158, 11, 0.3);
-  
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  /* InMinutes Distinctive Brand Palette */
+  --bg-deep: #130a2a;        /* Deep midnight indigo background */
+  --bg-surface: #1e123d;     /* Card surface purple */
+  --bg-pill: #2a1b54;        /* Floating nav & pill purple */
+  --bg-glass: rgba(30, 18, 61, 0.75);
 
-  --accent-amber: #f59e0b;
-  --accent-orange: #ea580c;
-  --accent-emerald: #10b981;
-  --accent-sky: #0ea5e9;
-  --accent-rose: #f43f5e;
-  --accent-purple: #8b5cf6;
+  /* Signature InMinutes Brand Accents */
+  --brand-lime: #c6f00c;     /* Electric chartreuse / vibrant lime yellow */
+  --brand-lime-hover: #b3db08;
+  --brand-lime-glow: rgba(198, 240, 12, 0.25);
+  --brand-purple: #48239e;   /* Royal purple */
+  --brand-purple-light: #6a3bf0;
+
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-lime: rgba(198, 240, 12, 0.35);
+
+  --text-primary: #ffffff;
+  --text-secondary: #c3b8e0;
+  --text-muted: #8a7fa8;
+  --text-dark: #130a2a;
+
+  /* Status Colors */
+  --status-emerald: #10b981;
+  --status-rose: #f43f5e;
+  --status-amber: #f59e0b;
 
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-glow: 0 0 25px rgba(245, 158, 11, 0.15);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-lime: 0 4px 20px rgba(198, 240, 12, 0.35);
+  --shadow-pill: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -42,13 +49,14 @@
 
 body {
   font-family: var(--font-main);
-  background-color: var(--bg-primary);
+  background-color: var(--bg-deep);
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.06) 0px, transparent 50%);
+    radial-gradient(at 20% 0%, rgba(72, 35, 158, 0.35) 0px, transparent 60%),
+    radial-gradient(at 80% 100%, rgba(198, 240, 12, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(19, 10, 42, 1) 0px, transparent 100%);
   background-attachment: fixed;
 }
 
@@ -62,69 +70,111 @@ button {
   cursor: pointer;
   border: none;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: var(--bg-deep);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-subtle);
+  background: var(--bg-pill);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--brand-purple-light);
 }
 
-/* Utilities */
-.glass-panel {
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+/* Glass Panels */
+.inminutes-panel {
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
+/* Script / Hand-drawn Accent */
+.script-highlight {
+  font-family: var(--font-script);
+  color: var(--brand-lime);
+  font-size: 2.25rem;
+  line-height: 1;
+  display: inline-block;
+  transform: rotate(-1.5deg);
+}
+
+/* InMinutes Sticker Box Tag (like [FOOD], [SPEED]) */
+.sticker-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 14px;
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  box-shadow: 2px 3px 0px rgba(0, 0, 0, 0.5);
+  transform: rotate(-2deg);
+}
+
+.sticker-tag.lime {
+  border-color: var(--brand-lime);
+  color: var(--brand-lime);
+  box-shadow: 2px 3px 0px rgba(198, 240, 12, 0.3);
+  transform: rotate(1.5deg);
+}
+
+/* Badges */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+}
+
+.badge-lime {
+  background: rgba(198, 240, 12, 0.15);
+  color: var(--brand-lime);
+  border: 1px solid var(--brand-lime);
+  box-shadow: 0 0 12px var(--brand-lime-glow);
 }
 
 .badge-new {
   background: rgba(14, 165, 233, 0.15);
   color: #38bdf8;
-  border: 1px solid rgba(14, 165, 233, 0.3);
+  border: 1px solid rgba(14, 165, 233, 0.35);
 }
 
 .badge-cooking {
   background: rgba(245, 158, 11, 0.15);
   color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .badge-ready {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(198, 240, 12, 0.18);
+  color: var(--brand-lime);
+  border: 1px solid var(--brand-lime);
 }
 
 .badge-picked-up {
-  background: rgba(100, 116, 139, 0.2);
-  color: #94a3b8;
-  border: 1px solid rgba(100, 116, 139, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-stock-out {
@@ -134,13 +184,13 @@ button {
 }
 
 .badge-stock-low {
-  background: rgba(245, 158, 11, 0.2);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(198, 240, 12, 0.2);
+  color: var(--brand-lime);
+  border: 1px solid var(--brand-lime);
   animation: pulse-glow 2s infinite;
 }
 
 @keyframes pulse-glow {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
+  50% { opacity: 0.85; transform: scale(1.03); }
 }

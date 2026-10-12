@@ -4,15 +4,26 @@ import { MenuCard } from '../components/MenuCard';
 import { CartModal } from '../components/CartModal';
 import { API_BASE, getSocket } from '../services/socket';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 export const CustomerMenuPage: React.FC = () => {
   const [menu, setMenu] = useState<MenuItem[]>([]);
-  const [cart, setCart] = useState<Map<string, { item: MenuItem; quantity: number }>>(new Map());
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
+
+  const {
+    cart,
+    cartCount,
+    isCartOpen,
+    setIsCartOpen,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    updateItemStock
+  } = useCart();
 
   const navigate = useNavigate();
 
@@ -36,7 +47,28 @@ export const CustomerMenuPage: React.FC = () => {
     const savedOrder = localStorage.getItem('kom_last_order');
     if (savedOrder) {
       try {
-        setLastOrder(JSON.parse(savedOrder));
+        const parsed: Order = JSON.parse(savedOrder);
+        // Do not show as active if it is already finished (PICKED_UP or CANCELLED)
+        if (parsed.status !== 'PICKED_UP' && parsed.status !== 'CANCELLED') {
+          setLastOrder(parsed);
+          // Verify current status with server in case it changed while away
+          fetch(`${API_BASE}/orders/${parsed.id}`)
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && res.data) {
+                if (res.data.status === 'PICKED_UP' || res.data.status === 'CANCELLED') {
+                  localStorage.removeItem('kom_last_order');
+                  setLastOrder(null);
+                } else {
+                  setLastOrder(res.data);
+                  localStorage.setItem('kom_last_order', JSON.stringify(res.data));
+                }
+              }
+            })
+            .catch(() => {});
+        } else {
+          localStorage.removeItem('kom_last_order');
+        }
       } catch (e) {
         // ignore
       }
@@ -51,57 +83,35 @@ export const CustomerMenuPage: React.FC = () => {
           return match ? { ...item, stock: match.stock } : item;
         })
       );
+      updateItemStock(payload.items);
+    };
+
+    // Listen for status changes to clear active order as soon as it is PICKED_UP
+    const handleOrderStatusChanged = (payload: { orderId: string; currentStatus: Order['status'] }) => {
+      setLastOrder((prev) => {
+        if (!prev || prev.id !== payload.orderId) return prev;
+        if (payload.currentStatus === 'PICKED_UP' || payload.currentStatus === 'CANCELLED') {
+          localStorage.removeItem('kom_last_order');
+          return null; // Stop showing active order banner!
+        }
+        const updated = { ...prev, status: payload.currentStatus };
+        localStorage.setItem('kom_last_order', JSON.stringify(updated));
+        return updated;
+      });
     };
 
     socket.on('STOCK_UPDATED', handleStockUpdated);
+    socket.on('ORDER_STATUS_CHANGED', handleOrderStatusChanged);
 
     return () => {
       socket.off('STOCK_UPDATED', handleStockUpdated);
+      socket.off('ORDER_STATUS_CHANGED', handleOrderStatusChanged);
     };
   }, []);
 
-  const handleAddToCart = (item: MenuItem) => {
-    setCart((prev) => {
-      const next = new Map(prev);
-      const existing = next.get(item.id);
-      const currentQty = existing ? existing.quantity : 0;
-      if (currentQty < item.stock) {
-        next.set(item.id, { item, quantity: currentQty + 1 });
-      }
-      return next;
-    });
-  };
-
-  const handleRemoveFromCart = (itemId: string) => {
-    setCart((prev) => {
-      const next = new Map(prev);
-      const existing = next.get(itemId);
-      if (existing) {
-        if (existing.quantity > 1) {
-          next.set(itemId, { ...existing, quantity: existing.quantity - 1 });
-        } else {
-          next.delete(itemId);
-        }
-      }
-      return next;
-    });
-  };
-
-  const handleUpdateQuantity = (itemId: string, delta: number) => {
-    if (delta > 0) {
-      const entry = cart.get(itemId);
-      if (entry) handleAddToCart(entry.item);
-    } else {
-      handleRemoveFromCart(itemId);
-    }
-  };
-
-  const handleClearCart = () => {
-    setCart(new Map());
-    setErrorMessage(null);
-  };
-
   const handleCheckout = async (customerName: string) => {
+    if (cart.size === 0 || isSubmitting) return;
+
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -129,7 +139,6 @@ export const CustomerMenuPage: React.FC = () => {
       if (!res.ok) {
         if (data.code === 'INSUFFICIENT_STOCK') {
           setErrorMessage(data.error || 'Requested item is out of stock.');
-          // Refresh menu to update real counts
           fetchMenu();
         } else {
           setErrorMessage(data.error || 'Failed to place order.');
@@ -142,7 +151,7 @@ export const CustomerMenuPage: React.FC = () => {
       const createdOrder: Order = data.data;
       localStorage.setItem('kom_last_order', JSON.stringify(createdOrder));
       setLastOrder(createdOrder);
-      setCart(new Map());
+      clearCart();
       setIsCartOpen(false);
       setIsSubmitting(false);
 
@@ -160,90 +169,105 @@ export const CustomerMenuPage: React.FC = () => {
       ? menu
       : menu.filter((i) => i.category === selectedCategory);
 
-  const cartTotalItems = Array.from(cart.values()).reduce(
-    (sum, i) => sum + i.quantity,
-    0
-  );
-
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
-      {/* Hero Banner */}
-      <div
-        className="glass-panel"
-        style={{
-          padding: '2.5rem',
-          marginBottom: '2.5rem',
-          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(234, 88, 12, 0.08))',
-          border: '1px solid var(--border-accent)',
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2.5rem 1.5rem 4rem 1.5rem' }}>
+      {/* inMinutes "GOOD FOOD, ZERO WAIT." Hero Banner */}
+      <div style={{
+        textAlign: 'center',
+        padding: '3rem 1rem 2rem 1rem',
+        marginBottom: '2.5rem',
+        position: 'relative'
+      }}>
+        {/* Playful Floating Doodles / Sparks */}
+        <div style={{
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1.5rem'
-        }}
-      >
-        <div>
+          justifyContent: 'center',
+          gap: '12px',
+          marginBottom: '0.25rem'
+        }}>
+          <span style={{ fontSize: '1.4rem' }}>🌶️</span>
+          <span style={{ color: 'var(--brand-lime)', fontSize: '1.2rem', fontWeight: 800 }}>✦</span>
+          <span style={{ fontSize: '1.3rem' }}>🌮</span>
+        </div>
+
+        {/* Large Bold Typography */}
+        <h1 style={{
+          fontSize: 'clamp(2.5rem, 6vw, 4.25rem)',
+          fontWeight: 900,
+          letterSpacing: '-0.03em',
+          lineHeight: 1.1,
+          textTransform: 'uppercase',
+          margin: '0 auto 0.75rem auto'
+        }}>
+          <span style={{ color: '#ffffff', display: 'block' }}>GOOD FOOD,</span>
+          <span style={{
+            color: 'var(--brand-lime)',
+            textShadow: '0 0 25px var(--brand-lime-glow)',
+            display: 'inline-block'
+          }}>
+            ZERO WAIT.
+          </span>
+        </h1>
+
+        <p style={{
+          color: 'var(--text-secondary)',
+          fontSize: '1.15rem',
+          fontWeight: 500,
+          margin: '0 auto',
+          maxWidth: '550px'
+        }}>
+          Flavor-packed bites, delivered in <strong style={{ color: 'var(--brand-lime)', fontWeight: 700 }}>minutes</strong>.
+        </p>
+
+        {lastOrder && (lastOrder.status === 'NEW' || lastOrder.status === 'COOKING' || lastOrder.status === 'READY') && (
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
-            padding: '4px 12px',
+            gap: '12px',
+            marginTop: '1rem',
+            padding: '8px 18px',
             borderRadius: '999px',
-            background: 'rgba(245,158,11,0.2)',
-            color: 'var(--accent-amber)',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            marginBottom: '0.75rem'
-          }}>
-            ⚡ ACID TRANSACTIONAL ENGINE
-          </div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>
-            Freshly Prepared. Real-Time Kitchen.
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', fontSize: '1rem', lineHeight: 1.5 }}>
-            Every order is reserved with strict PostgreSQL conditional updates. Zero overselling, instant kitchen dispatch, and sub-second status synchronization.
-          </p>
-        </div>
-
-        {lastOrder && (
-          <div style={{
-            background: 'rgba(0,0,0,0.4)',
-            padding: '1.25rem',
-            borderRadius: '12px',
+            background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)'
           }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>CURRENT ACTIVE ORDER</div>
-            <div style={{ fontWeight: 700, margin: '4px 0' }}>#{lastOrder.id.slice(0, 8)}</div>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>ACTIVE ORDER:</span>
+            <span style={{ fontWeight: 800, color: 'var(--brand-lime)', fontSize: '0.85rem' }}>
+              #{lastOrder.id.slice(0, 8)} ({lastOrder.status})
+            </span>
             <button
               onClick={() => navigate(`/order/${lastOrder.id}`)}
               style={{
-                fontSize: '0.85rem',
-                color: 'var(--accent-amber)',
-                background: 'transparent',
+                fontSize: '0.8rem',
+                color: '#fff',
+                background: 'rgba(255, 255, 255, 0.1)',
+                padding: '4px 10px',
+                borderRadius: '999px',
                 fontWeight: 600,
-                padding: 0
+                cursor: 'pointer'
               }}
             >
-              Track Live Status &rarr;
+              Track Status &rarr;
             </button>
           </div>
         )}
       </div>
 
       {/* Category Pills */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.65rem', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
             style={{
-              padding: '0.5rem 1.25rem',
+              padding: '0.5rem 1.35rem',
               borderRadius: '999px',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              background: selectedCategory === cat ? 'var(--accent-amber)' : 'rgba(255,255,255,0.05)',
-              color: selectedCategory === cat ? '#000' : 'var(--text-secondary)',
-              border: `1px solid ${selectedCategory === cat ? 'transparent' : 'var(--border-subtle)'}`
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              background: selectedCategory === cat ? 'var(--brand-lime)' : 'var(--bg-pill)',
+              color: selectedCategory === cat ? 'var(--text-dark)' : 'var(--text-secondary)',
+              border: `1px solid ${selectedCategory === cat ? 'transparent' : 'var(--border-subtle)'}`,
+              boxShadow: selectedCategory === cat ? 'var(--shadow-lime)' : 'none'
             }}
           >
             {cat}
@@ -254,7 +278,7 @@ export const CustomerMenuPage: React.FC = () => {
       {/* Menu Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
         gap: '1.75rem'
       }}>
         {filteredMenu.map((item) => (
@@ -262,8 +286,8 @@ export const CustomerMenuPage: React.FC = () => {
             key={item.id}
             item={item}
             cartQuantity={cart.get(item.id)?.quantity || 0}
-            onAddToCart={handleAddToCart}
-            onRemoveFromCart={handleRemoveFromCart}
+            onAddToCart={addToCart}
+            onRemoveFromCart={removeFromCart}
           />
         ))}
       </div>
@@ -273,15 +297,15 @@ export const CustomerMenuPage: React.FC = () => {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cart={cart}
-        onUpdateQuantity={handleUpdateQuantity}
-        onClearCart={handleClearCart}
+        onUpdateQuantity={updateQuantity}
+        onClearCart={clearCart}
         onCheckout={handleCheckout}
         isSubmitting={isSubmitting}
         errorMessage={errorMessage}
       />
 
       {/* Sticky Bottom Cart Floating Bar if Cart Has Items */}
-      {cartTotalItems > 0 && !isCartOpen && (
+      {cartCount > 0 && !isCartOpen && (
         <div style={{
           position: 'fixed',
           bottom: '24px',
@@ -295,16 +319,16 @@ export const CustomerMenuPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              padding: '0.875rem 2rem',
+              padding: '0.85rem 2rem',
               borderRadius: '999px',
-              background: 'linear-gradient(135deg, #f59e0b, #ea580c)',
-              color: '#fff',
-              fontWeight: 700,
+              background: 'var(--brand-lime)',
+              color: 'var(--text-dark)',
+              fontWeight: 800,
               fontSize: '1rem',
-              boxShadow: '0 8px 30px rgba(245, 158, 11, 0.4)'
+              boxShadow: 'var(--shadow-lime)'
             }}
           >
-            <span>🛒 View Cart ({cartTotalItems} items)</span>
+            <span>🛒 View Cart ({cartCount} items)</span>
             <span>&rarr;</span>
           </button>
         </div>

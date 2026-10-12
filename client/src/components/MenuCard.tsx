@@ -19,26 +19,26 @@ export const MenuCard: React.FC<MenuCardProps> = ({
 
   return (
     <div
-      className="glass-panel"
+      className="inminutes-panel"
       style={{
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         transition: 'transform 0.25s ease, box-shadow 0.25s ease',
         opacity: isOutOfStock ? 0.65 : 1,
-        position: 'relative'
+        position: 'relative',
+        border: isLimitedStock ? '1px solid var(--border-lime)' : '1px solid var(--border-subtle)'
       }}
     >
       {/* Food Image */}
-      <div style={{ position: 'relative', width: '100%', height: '180px', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', width: '100%', height: '190px', overflow: 'hidden' }}>
         <img
           src={item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'}
           alt={item.name}
           style={{
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
-            transition: 'transform 0.5s ease'
+            objectFit: 'cover'
           }}
         />
         <div style={{
@@ -51,10 +51,10 @@ export const MenuCard: React.FC<MenuCardProps> = ({
           {isOutOfStock ? (
             <span className="badge badge-stock-out">OUT OF STOCK</span>
           ) : isLimitedStock ? (
-            <span className="badge badge-stock-low">ONLY 1 LEFT!</span>
+            <span className="badge badge-stock-low">⚡ ONLY 1 LEFT!</span>
           ) : (
-            <span className="badge" style={{ background: 'rgba(0,0,0,0.6)', color: '#fff' }}>
-              {item.stock} in stock
+            <span className="badge" style={{ background: 'rgba(19, 10, 42, 0.85)', color: 'var(--brand-lime)', border: '1px solid rgba(198, 240, 12, 0.3)' }}>
+              {item.stock} IN STOCK
             </span>
           )}
         </div>
@@ -62,27 +62,30 @@ export const MenuCard: React.FC<MenuCardProps> = ({
           position: 'absolute',
           bottom: '12px',
           left: '12px',
-          background: 'rgba(11, 15, 25, 0.75)',
+          background: 'rgba(19, 10, 42, 0.85)',
           backdropFilter: 'blur(8px)',
-          padding: '3px 8px',
-          borderRadius: '6px',
-          fontSize: '0.75rem',
-          color: 'var(--text-secondary)'
+          padding: '3px 10px',
+          borderRadius: '999px',
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          color: 'var(--text-secondary)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
         }}>
           {item.category}
         </div>
       </div>
 
       {/* Item Details */}
-      <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1, gap: '0.75rem' }}>
+      <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1, gap: '0.65rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>
             {item.name}
           </h3>
           <span style={{
             fontSize: '1.15rem',
             fontWeight: 800,
-            color: 'var(--accent-amber)',
+            color: 'var(--brand-lime)',
             fontFamily: 'var(--font-mono)'
           }}>
             ${item.price.toFixed(2)}
@@ -90,7 +93,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
         </div>
 
         <p style={{
-          fontSize: '0.85rem',
+          fontSize: '0.84rem',
           color: 'var(--text-secondary)',
           lineHeight: 1.5,
           flex: 1
@@ -104,22 +107,23 @@ export const MenuCard: React.FC<MenuCardProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           marginTop: 'auto',
-          paddingTop: '0.75rem',
+          paddingTop: '0.85rem',
           borderTop: '1px solid var(--border-subtle)'
         }}>
-          <div style={{ fontSize: '0.8rem', color: isOutOfStock ? 'var(--accent-rose)' : 'var(--text-muted)' }}>
-            {isOutOfStock ? 'Sold out' : `Live: ${item.stock} units`}
+          <div style={{ fontSize: '0.8rem', color: isOutOfStock ? 'var(--status-rose)' : 'var(--text-muted)' }}>
+            {isOutOfStock ? 'Sold out' : `Live: ${item.stock} left`}
           </div>
 
           {cartQuantity > 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
+                type="button"
                 onClick={() => onRemoveFromCart(item.id)}
                 style={{
                   width: '32px',
                   height: '32px',
-                  borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: '999px',
+                  background: 'rgba(255, 255, 255, 0.1)',
                   color: '#fff',
                   fontWeight: 700,
                   fontSize: '1rem',
@@ -130,19 +134,20 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               >
                 -
               </button>
-              <span style={{ fontWeight: 700, minWidth: '20px', textAlign: 'center' }}>
+              <span style={{ fontWeight: 800, minWidth: '22px', textAlign: 'center', color: '#fff' }}>
                 {cartQuantity}
               </span>
               <button
+                type="button"
                 disabled={cartQuantity >= item.stock}
                 onClick={() => onAddToCart(item)}
                 style={{
                   width: '32px',
                   height: '32px',
-                  borderRadius: '8px',
-                  background: cartQuantity >= item.stock ? 'rgba(255,255,255,0.05)' : 'var(--accent-amber)',
-                  color: cartQuantity >= item.stock ? 'var(--text-muted)' : '#000',
-                  fontWeight: 700,
+                  borderRadius: '999px',
+                  background: cartQuantity >= item.stock ? 'rgba(255, 255, 255, 0.05)' : 'var(--brand-lime)',
+                  color: cartQuantity >= item.stock ? 'var(--text-muted)' : 'var(--text-dark)',
+                  fontWeight: 800,
                   fontSize: '1rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -155,20 +160,21 @@ export const MenuCard: React.FC<MenuCardProps> = ({
             </div>
           ) : (
             <button
+              type="button"
               disabled={isOutOfStock}
               onClick={() => onAddToCart(item)}
               style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '8px',
-                background: isOutOfStock ? 'rgba(255,255,255,0.05)' : 'rgba(245, 158, 11, 0.15)',
-                color: isOutOfStock ? 'var(--text-muted)' : 'var(--accent-amber)',
-                border: `1px solid ${isOutOfStock ? 'transparent' : 'rgba(245, 158, 11, 0.3)'}`,
-                fontWeight: 600,
-                fontSize: '0.85rem',
+                padding: '0.5rem 1.15rem',
+                borderRadius: '999px',
+                background: isOutOfStock ? 'rgba(255, 255, 255, 0.05)' : 'var(--brand-lime)',
+                color: isOutOfStock ? 'var(--text-muted)' : 'var(--text-dark)',
+                fontWeight: 800,
+                fontSize: '0.82rem',
+                boxShadow: isOutOfStock ? 'none' : '0 2px 10px var(--brand-lime-glow)',
                 cursor: isOutOfStock ? 'not-allowed' : 'pointer'
               }}
             >
-              {isOutOfStock ? 'Out of Stock' : '+ Add to Cart'}
+              {isOutOfStock ? 'Out of Stock' : '+ Add'}
             </button>
           )}
         </div>
