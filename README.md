@@ -43,7 +43,7 @@ This project runs strictly on standard, verified, LTS tool versions without any 
 ### Step 1: Clone Repository & Install Dependencies
 The repository is organized as an npm workspace monorepo (`server` and `client`):
 ```bash
-git clone <YOUR_REPO_URL>
+git clone https://github.com/komalmahendrakar/KomKitchen
 cd kom_kitchen
 npm install
 ```
